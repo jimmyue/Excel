@@ -1,0 +1,11 @@
+select sub_grade_name from (
+select distinct g.sub_grade_name,g.sn
+from dm_sub_model m
+left join da_sub_grade_sub_model sm on sm.sub_model_id=m.sub_model_id
+left join v_da_sub_grade g on g.sub_grade_id=sm.sub_grade_id
+where g.unit_id=(
+select r.unit_id from da_user r
+where r.login_id='{}')
+and g.show_flag=1
+)
+order by sn

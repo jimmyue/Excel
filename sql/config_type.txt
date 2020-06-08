@@ -1,0 +1,15 @@
+select '配置id','配置大类','类型','排序',t.config_type_name,t.config_type_name_en,' ',' ',' ',' ',' ',t.unit_id
+from da_config_type t
+where t.level_flag=1
+and exists(
+select 1 from da_config_group cg
+left join da_config_group_rel gr on gr.config_group_id=cg.config_group_id
+left join da_config g on g.unit_id=cg.unit_id and g.id=gr.id
+left join da_config_type gt on gt.unit_id=cg.unit_id and gt.config_type_id=g.config_type_id
+where cg.config_group_name='自造车'
+and cg.unit_id=(select y.unit_id 
+from da_user y 
+where y.login_id='{}')
+and gt.p_config_type_id=t.config_type_id and gt.unit_id=t.unit_id
+)
+order by t.sort

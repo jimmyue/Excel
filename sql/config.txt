@@ -1,0 +1,28 @@
+select g1.config_id,t2.config_type_name type,g1.data_type,g1.sort
+,case when g1.data_type='B' and g1.p_config_id<>g1.config_id then g1.config_name||g2.config_name 
+else g2.config_name end config_name
+,case when g1.data_type='B' and g1.p_config_id<>g1.config_id then g1.config_name_en||' '||g2.config_name_en 
+else g2.config_name_en end config_name_en
+from da_config_group cg
+left join da_config_group_rel gr on gr.config_group_id=cg.config_group_id
+left join da_config g1 on g1.id=gr.id and g1.unit_id=cg.unit_id
+left join da_config g2 on g2.config_id=g1.p_config_id and g2.unit_id=g1.unit_id
+left join da_config_type t1 on t1.config_type_id=g1.config_type_id and t1.unit_id=g1.unit_id
+left join da_config_type t2 on t2.config_type_id=t1.p_config_type_id and t2.unit_id=t1.unit_id
+where t1.status=1
+and g1.is_show=1
+and g1.data_type<>'T'
+and cg.config_group_name='×ÔÔì³µ' 
+and cg.unit_id=(
+select y.unit_id 
+from da_user y 
+where y.login_id='{}'
+)
+and not exists(
+select 1 from da_config g
+where g.unit_id=g1.unit_id
+and g1.config_id=g.p_config_id
+and g.config_id<>g.p_config_id
+and g.is_show=1
+)
+order by t2.sort,t1.sort,g2.sort,g1.sort
