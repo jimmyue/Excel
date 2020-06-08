@@ -1,7 +1,7 @@
-ï»¿#!/usr/bin/python3
+#!/usr/bin/python3
 # -*- coding:utf-8 -*-
 '''
-Created on 2020å¹´6æœˆ5æ—¥
+Created on 2020Äê6ÔÂ5ÈÕ
 @author: yuejing
 '''
 
@@ -11,37 +11,41 @@ from common import oracleSql
 from common import eml
 
 def get_data(username):
-	#è·å–æ•°æ®åº“æ•°æ®
+	#»ñÈ¡Êı¾İ¿âÊı¾İ
 	config=oracleSql.sqlHandle().sqlTxt('./SQL/config.txt',username)
 	config_type_temp=oracleSql.sqlHandle().sqlTxt('./SQL/config_type.txt',username)
 	grade=oracleSql.sqlHandle().sqlTxt('./SQL/grade.txt',username)
-	#è·å–é…ç½®å¤§ç±»
+	#»ñÈ¡ÅäÖÃ´óÀà
 	config_type=[i[0:11] for i in config_type_temp]
-	#è·å–æ–‡ä»¶å
+	#»ñÈ¡ÎÄ¼şÃû
 	unit=config_type_temp[0][11]
 	file_name=unit+'_modelTemplate.xlsx'
 	return config,grade,config_type,file_name
 
 def export_excel(config,grade,config_type,file_name):
-	#åˆ›å»ºexcel
+	#´´½¨excel
 	workbook = xlsxwriter.Workbook('./result/'+file_name)
-	worksheet1 = workbook.add_worksheet('è‡ªé€ è½¦æ¨¡æ¿')
-	worksheet2 = workbook.add_worksheet('ä¸‹æ‹‰é¡¹')
-	#å•å…ƒæ ¼æ ·å¼
+	worksheet1 = workbook.add_worksheet('×ÔÔì³µÄ£°å')
+	worksheet2 = workbook.add_worksheet('ÏÂÀ­Ïî')
+
+	#µ¥Ôª¸ñÑùÊ½
 	title_format = workbook.add_format({'bold': True,'font_color': '#FFFFFF','fg_color':'#1F497D'})
-	#å¯¼å‡ºç»†åˆ†å¸‚åœºä¸‹æ‹‰é¡¹
-	gradecols='=ä¸‹æ‹‰é¡¹!$A1:$A'+str(len(grade))
+	per_format = workbook.add_format({'num_format': '0.00%'})
+	format_border=workbook.add_format({'border':1})
+
+	#µ¼³öÏ¸·ÖÊĞ³¡ÏÂÀ­Ïî
+	gradecols='=ÏÂÀ­Ïî!$A1:$A'+str(len(grade))
 	for g in range(len(grade)):
 		gradecol='A'+str(g+1)
 		worksheet2.write(gradecol, grade[g][0])
 
-	#å¯¼å‡ºæ ‡é¢˜
-	titles=[('A1',''),('B1',''),('C1',''),('D1',''),('E1','åŸºæœ¬ä¿¡æ¯'),('F1','é…ç½®åç§°è‹±æ–‡'),('G1','é…ç½®å€¼'),('H1','é…ç½®å€¼'),('I1','é…ç½®å€¼'),('J1','é…ç½®å€¼'),('K1','é…ç½®å€¼')]
+	#µ¼³ö±êÌâ
+	titles=[('A1',''),('B1',''),('C1',''),('D1',''),('E1','»ù±¾ĞÅÏ¢'),('F1','ÅäÖÃÃû³ÆÓ¢ÎÄ'),('G1','ÅäÖÃÖµ'),('H1','ÅäÖÃÖµ'),('I1','ÅäÖÃÖµ'),('J1','ÅäÖÃÖµ'),('K1','ÅäÖÃÖµ')]
 	for title in titles:
 		worksheet1.write(title[0],title[1],title_format)
 
-	#å¯¼å‡ºåŸºæœ¬ä¿¡æ¯
-	basic=[('è½¦å‹','Model'),('è½¦å‹è‹±æ–‡åç§°','Modelï¼ˆenï¼‰'),('å‹å·','Version'),('å‹å·è‹±æ–‡åç§°','Versionï¼ˆenï¼‰'),('æŒ‡å¯¼ä»·','MSRP'),('æˆäº¤ä»·','TP'),('Mix','Mix'),('ç»†åˆ†å¸‚åœº','Segment')]
+	#µ¼³ö»ù±¾ĞÅÏ¢
+	basic=[('³µĞÍ','Model'),('³µĞÍÓ¢ÎÄÃû³Æ','Model£¨en£©'),('ĞÍºÅ','Version'),('ĞÍºÅÓ¢ÎÄÃû³Æ','Version£¨en£©'),('Ö¸µ¼¼Û','MSRP'),('³É½»¼Û','TP'),('Mix','Mix'),('Ï¸·ÖÊĞ³¡','Segment')]
 	basic_row = 1
 	basic_col = 4
 	for basic_cn,basic_en in basic:
@@ -52,12 +56,14 @@ def export_excel(config,grade,config_type,file_name):
 		elif basic_row==6:
 			worksheet1.data_validation('G7:K7',{'validate':'integer','criteria':'between','minimum':1,'maximum':99999999,'input_message':'Integer','error_title': 'Input value not valid!','error_message': 'between 1 and 99999999'})
 		elif basic_row==7:
-			worksheet1.data_validation('G8:K8',{'validate':'decimal','criteria':'between','minimum':0,'maximum': 100,'input_message':'decimal','error_title': 'Input value not valid!','error_message': 'between 0 and 100'})
+			#ÏÈÉèÖÃµ¥Ôª¸ñ¸ñÊ½£¬ÔÙÉèÖÃÊäÈëÏŞÖÆ
+			worksheet1.write('G8:K8','', per_format)
+			worksheet1.data_validation('G8:K8',{'validate':'decimal','criteria':'between','minimum':0,'maximum': 1,'input_message':'decimal','error_title': 'Input value not valid!','error_message': 'between 0 and 100'})
 		elif basic_row==8:
 			worksheet1.data_validation('G9:K9',{'validate': 'list','source':gradecols,'input_message':'Segment'})
 		basic_row += 1
 
-	#å¯¼å‡ºé…ç½®é¡¹
+	#µ¼³öÅäÖÃÏî
 	row=9
 	col=0
 	for r1,r2,r3,r4,r5,r6,r7,r8,r9,r10,r11 in config_type:
@@ -90,13 +96,21 @@ def export_excel(config,grade,config_type,file_name):
 					worksheet1.data_validation(row_col, {'validate':'decimal','criteria': '>=','value': 0,'input_message':'Decimal','error_title': 'Input value not valid!','error_message': 'It should be an decimal'})
 		row += 1
 
+	#Òş²Øsheet2
+	worksheet2.hide()
+	#Òş²ØA:DÁĞ
+	worksheet1.set_column('A:D', None, None, {'hidden': 1})
+  #ÉèÖÃÁĞ¿íÎª40
+	worksheet1.set_column('E:F',40)
+	#ÉèÖÃ±ß¿ò
+	worksheet1.conditional_format('A1:K'+str(row),{'type':'no_errors','format': format_border})
 	workbook.close()
-	print('è‡ªé€ è½¦æ¨¡æ¿å¯¼å‡ºæˆåŠŸï¼')
+	print('×ÔÔì³µÄ£°åµ¼³ö³É¹¦£¡')
 
 
 if __name__ == "__main__":
-	#ä¿®æ”¹éœ€è¦å¯¼å‡ºçš„è´¦å·
+	#ĞŞ¸ÄĞèÒªµ¼³öµÄÕËºÅ
 	data=get_data('yuej')
 	export_excel(data[0],data[1],data[2],data[3])
-	#eml.emlHandle().emilSend(['chenxiaoqin@way-s.cn','xieyulin@way-s.cn','yuejing@way-s.cn'],'è‡ªé€ è½¦æ¨¡æ¿','é™„ä»¶ä¸ºè‡ªåŠ¨å¯¼å‡ºçš„è‡ªé€ è½¦æ¨¡æ¿ï¼Œè¯·æŸ¥æ”¶ï¼','./result/'+data[3])
+	#eml.emlHandle().emilSend(['chenxiaoqin@way-s.cn','lirongjian@way-s.cn','yuejing@way-s.cn'],'×ÔÔì³µÄ£°å','¸½¼şÎª×Ô¶¯µ¼³öµÄ×ÔÔì³µÄ£°å£¬Çë²éÊÕ£¡','./result/'+data[3])
 
